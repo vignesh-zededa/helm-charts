@@ -1,0 +1,21 @@
+# templates/nginx-service.yaml
+# This template defines a Kubernetes Service for the Nginx
+# web server. This exposes the Nginx pods within the cluster
+# so that other applications can access them.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-nginx
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx
+spec:
+  type: {{ .Values.nginx.service.type }}
+  ports:
+    - port: {{ .Values.nginx.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "orchestrator-test-chart.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx

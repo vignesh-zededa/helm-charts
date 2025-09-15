@@ -1,0 +1,16 @@
+# templates/shared-pvc.yaml
+# This PVC now uses the 'storageClassName' defined in values.yaml,
+# which defaults to 'longhorn'. The StorageClass resource itself has been removed.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-shared
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}

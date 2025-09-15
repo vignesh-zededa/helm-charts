@@ -1,0 +1,50 @@
+# values.yaml
+# Longhorn-specific values are removed. We now specify the name of the
+# pre-existing StorageClass we want to use.
+storageClassName: longhorn
+
+# Shared persistence configuration
+persistence:
+  size: 3Gi # Combined size for both apps
+
+# Nginx web server configuration
+nginx:
+  replicaCount: 1
+  image:
+    repository: nginx
+    pullPolicy: IfNotPresent
+    tag: "1.21.6"
+  service:
+    type: ClusterIP
+    port: 80
+
+# PostgreSQL database configuration
+postgresql:
+  replicaCount: 1
+  image:
+    repository: postgres
+    pullPolicy: IfNotPresent
+    tag: "14.2"
+  env:
+    postgresUser: "testuser"
+    postgresPassword: "testpassword"
+    postgresDb: "testdb"
+  service:
+    type: ClusterIP
+    port: 5432
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# NetworkPolicy configuration
+networkPolicy:
+  enabled: true

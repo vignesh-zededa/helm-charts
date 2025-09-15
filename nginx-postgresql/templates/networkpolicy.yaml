@@ -1,0 +1,52 @@
+# templates/networkpolicy.yaml
+# This template creates NetworkPolicy resources to restrict traffic.
+# It is only created if `networkPolicy.enabled` is set to true.
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-postgresql
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: postgresql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: nginx
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-nginx
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: nginx
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {} # Allow all ingress traffic to Nginx
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    - ports: # Allow DNS lookups
+        - protocol: UDP
+          port: 53
+{{- end }}

@@ -1,0 +1,39 @@
+# templates/nginx-deployment.yaml
+# This template defines the Kubernetes Deployment for the Nginx
+# web server. It now mounts the shared PVC and uses a subPath
+# to store its data in an 'nginx' subdirectory.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-nginx
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx
+spec:
+  replicas: {{ .Values.nginx.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "orchestrator-test-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: nginx
+  template:
+    metadata:
+      labels:
+        {{- include "orchestrator-test-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /usr/share/nginx/html
+              subPath: nginx
+      volumes:
+        - name: shared-storage
+          persistentVolumeClaim:
+            claimName: {{ include "orchestrator-test-chart.fullname" . }}-shared

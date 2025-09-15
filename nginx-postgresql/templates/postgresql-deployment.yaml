@@ -1,0 +1,49 @@
+# templates/postgresql-deployment.yaml
+# This template defines the Kubernetes Deployment for the PostgreSQL
+# database. It now mounts the shared PVC and uses a subPath
+# to store its data in a 'postgresql' subdirectory.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "orchestrator-test-chart.fullname" . }}-postgresql
+  labels:
+    {{- include "orchestrator-test-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  replicas: {{ .Values.postgresql.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "orchestrator-test-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: postgresql
+  template:
+    metadata:
+      labels:
+        {{- include "orchestrator-test-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.env.postgresUser }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgresql.env.postgresPassword }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.env.postgresDb }}
+            # You must also set PGDATA to the new mount path
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgresql
+      volumes:
+        - name: shared-storage
+          persistentVolumeClaim:
+            claimName: {{ include "orchestrator-test-chart.fullname" . }}-shared
