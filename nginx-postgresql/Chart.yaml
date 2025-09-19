@@ -2,7 +2,7 @@
 # The Longhorn dependency has been removed. This chart now assumes
 # Longhorn is already installed on the cluster.
 apiVersion: v2
-name: orchestrator-test-chart
+name: qa-test-chart
 description: A Helm chart for applications that use a pre-existing Longhorn installation for storage.
 type: application
 version: 0.5.0
